@@ -205,6 +205,7 @@ Dark theme (`bg-zinc-900 text-white`). HUD uses a slightly lighter bar (`bg-zinc
 - **Loop nudging** — additional keys to shift the loop start/end point by small increments (e.g. `[` / `]` to nudge start, `{` / `}` to nudge end). Useful for dialing in a loop precisely without re-setting it from scratch.
 - **Named loop presets** — save and name multiple loops per video (e.g. "verse", "bridge solo"). Store as an array in localStorage alongside the current loop state.
 - **Custom speed presets** — let the user define their own set of speeds instead of the hardcoded defaults. Could live in a settings panel alongside the cheatsheet.
+- **Video + loop library** — save videos by ID with named loop presets attached. A sidebar or modal listing saved videos, each with their loops. Foundation for a more "product" direction if this ever gets shared publicly.
 
 ---
 
