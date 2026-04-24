@@ -199,6 +199,14 @@ Dark theme (`bg-zinc-900 text-white`). HUD uses a slightly lighter bar (`bg-zinc
 
 ---
 
+## Future Ideas
+
+- **Keyboard shortcut cheatsheet** — press `?` to toggle an overlay listing all shortcuts. Quick win, no state changes needed.
+- **Loop nudging** — additional keys to shift the loop start/end point by small increments (e.g. `[` / `]` to nudge start, `{` / `}` to nudge end). Useful for dialing in a loop precisely without re-setting it from scratch.
+- **Named loop presets** — save and name multiple loops per video (e.g. "verse", "bridge solo"). Store as an array in localStorage alongside the current loop state.
+
+---
+
 ## Verification
 
 1. `npm install && npm run dev` — app loads at localhost:5173
