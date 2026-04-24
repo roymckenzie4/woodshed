@@ -42,7 +42,7 @@ function Player({ videoId, ytReady, onPlayerReady }) {
   if (!videoId) return null
 
   return (
-    <div className="w-full aspect-video bg-black">
+    <div className="w-full h-full bg-black">
       <div id="yt-player" className="w-full h-full" />
     </div>
   )

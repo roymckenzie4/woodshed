@@ -15,6 +15,7 @@ function App() {
   const [loopEnd, setLoopEnd] = useState(null)
   const playerRef = useRef(null)
   const inputRef = useRef(null)
+  const appRef = useRef(null)
 
   // Load the YouTube IFrame API script once on mount
   useEffect(() => {
@@ -22,6 +23,16 @@ function App() {
     const tag = document.createElement('script')
     tag.src = 'https://www.youtube.com/iframe_api'
     document.head.appendChild(tag)
+
+    // When the user clicks the YouTube iframe, focus moves into the cross-origin
+    // document and our keydown listener stops firing. Stealing focus back to
+    // document.body on every window blur keeps our shortcuts working while still
+    // letting YouTube register mouse clicks (play/pause, scrubbing, etc.).
+    function handleBlur() {
+      setTimeout(() => appRef.current?.focus(), 0)
+    }
+    window.addEventListener('blur', handleBlur)
+    return () => window.removeEventListener('blur', handleBlur)
   }, [])
 
   // Loop enforcer — polls currentTime every 100ms and seeks back to loopStart
@@ -95,15 +106,15 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-white flex flex-col">
+    <div ref={appRef} tabIndex={-1} className="h-screen bg-zinc-900 text-white flex flex-col overflow-hidden outline-none">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800">
+      <header className="shrink-0 flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800">
         <span className="font-mono text-zinc-400 text-sm tracking-widest">woodshed</span>
         <UrlInput ref={inputRef} onLoad={setVideoId} />
       </header>
 
       {/* Player */}
-      <main className="flex-1">
+      <main className="flex-1 min-h-0">
         {videoId ? (
           <Player
             videoId={videoId}
@@ -111,7 +122,7 @@ function App() {
             onPlayerReady={handlePlayerReady}
           />
         ) : (
-          <div className="flex items-center justify-center h-64 text-zinc-600 font-mono text-sm">
+          <div className="flex items-center justify-center h-full text-zinc-600 font-mono text-sm">
             paste a YouTube URL above to begin
           </div>
         )}
