@@ -4,8 +4,8 @@ import Player from './components/Player.jsx'
 import HUD from './components/HUD.jsx'
 import Cheatsheet from './components/Cheatsheet.jsx'
 
-const SPEEDS = [1.0, 0.75, 0.5, 0.35, 0.2]
-const SPEED_LABELS = ['100%', '75%', '50%', '35%', '20%']
+const SPEEDS = [1.0, 0.85, 0.70, 0.55, 0.40]
+const SPEED_LABELS = ['100%', '85%', '70%', '55%', '40%']
 const STORAGE_KEY = 'woodshed'
 const NUDGE = 0.25
 
@@ -167,7 +167,12 @@ function App() {
   }
 
   function handleLoad(id) {
+    if (id === videoId) return
     setVideoId(id)
+    setSpeedIndex(0)
+    setLoopState(0)
+    setLoopStart(null)
+    setLoopEnd(null)
   }
 
   return (
