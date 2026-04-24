@@ -5,17 +5,44 @@ import HUD from './components/HUD.jsx'
 
 const SPEEDS = [1.0, 0.75, 0.5, 0.35, 0.2]
 const SPEED_LABELS = ['100%', '75%', '50%', '35%', '20%']
+const STORAGE_KEY = 'woodshed'
+
+// Read whatever we previously saved, falling back to an empty object if
+// nothing is there yet (first visit) or the JSON is somehow corrupt.
+function loadSaved() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+  } catch {
+    return {}
+  }
+}
 
 function App() {
+  const saved = useRef(loadSaved()) // read once on first render, store in a ref
+
   const [ytReady, setYtReady] = useState(false)
-  const [videoId, setVideoId] = useState('')
-  const [speedIndex, setSpeedIndex] = useState(0)
-  const [loopState, setLoopState] = useState(0) // 0=off, 1=start set, 2=active
-  const [loopStart, setLoopStart] = useState(null)
-  const [loopEnd, setLoopEnd] = useState(null)
+  const [url, setUrl] = useState(saved.current.url || '')
+  const [videoId, setVideoId] = useState(saved.current.videoId || '')
+  const [speedIndex, setSpeedIndex] = useState(saved.current.speedIndex ?? 0)
+  const [loopState, setLoopState] = useState(saved.current.loopState ?? 0)
+  const [loopStart, setLoopStart] = useState(saved.current.loopStart ?? null)
+  const [loopEnd, setLoopEnd] = useState(saved.current.loopEnd ?? null)
   const playerRef = useRef(null)
   const inputRef = useRef(null)
   const appRef = useRef(null)
+
+  // Persist state to localStorage whenever any of these values change.
+  // JSON.stringify turns the object into a string so localStorage can store it.
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      url,
+      videoId,
+      speedIndex,
+      loopState,
+      loopStart,
+      loopEnd,
+    }))
+  }, [url, videoId, speedIndex, loopState, loopStart, loopEnd])
 
   // Load the YouTube IFrame API script once on mount
   useEffect(() => {
@@ -26,8 +53,8 @@ function App() {
 
     // When the user clicks the YouTube iframe, focus moves into the cross-origin
     // document and our keydown listener stops firing. Stealing focus back to
-    // document.body on every window blur keeps our shortcuts working while still
-    // letting YouTube register mouse clicks (play/pause, scrubbing, etc.).
+    // appRef keeps our shortcuts working while still letting YouTube register
+    // mouse clicks (play/pause, scrubbing, etc.).
     function handleBlur() {
       setTimeout(() => appRef.current?.focus(), 0)
     }
@@ -103,6 +130,19 @@ function App() {
 
   function handlePlayerReady(player) {
     playerRef.current = player
+    // Apply saved speed — the player resets to 1x on every new load,
+    // so we need to re-apply our setting once it's ready
+    if (speedIndex > 0) {
+      player.setPlaybackRate(SPEEDS[speedIndex])
+    }
+    // Seek to loop start so playback resumes from the right spot
+    if (loopStart !== null) {
+      player.seekTo(loopStart, true)
+    }
+  }
+
+  function handleLoad(id) {
+    setVideoId(id)
   }
 
   return (
@@ -110,7 +150,7 @@ function App() {
       {/* Header */}
       <header className="shrink-0 flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800">
         <span className="font-mono text-zinc-400 text-sm tracking-widest">woodshed</span>
-        <UrlInput ref={inputRef} onLoad={setVideoId} />
+        <UrlInput ref={inputRef} value={url} onChange={setUrl} onLoad={handleLoad} />
       </header>
 
       {/* Player */}

@@ -1,29 +1,22 @@
-import { useState, forwardRef } from 'react'
+import { forwardRef } from 'react'
 
 const YT_REGEX = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\n?#]+)/
 
-function extractVideoId(input) {
+export function extractVideoId(input) {
   const match = input.match(YT_REGEX)
   return match ? match[1] : null
 }
 
-const UrlInput = forwardRef(function UrlInput({ onLoad, defaultValue }, ref) {
-  const [value, setValue] = useState(defaultValue || '')
-  const [error, setError] = useState(false)
-
+// UrlInput is fully controlled — App owns the value and passes it down.
+// This lets App save the URL to localStorage and restore it on reload.
+const UrlInput = forwardRef(function UrlInput({ value, onChange, onLoad }, ref) {
   function submit() {
     const id = extractVideoId(value.trim())
-    if (id) {
-      setError(false)
-      onLoad(id)
-    } else {
-      setError(true)
-    }
+    if (id) onLoad(id)
   }
 
   function handleKeyDown(e) {
     if (e.key === 'Enter') submit()
-    if (error) setError(false)
   }
 
   return (
@@ -32,15 +25,10 @@ const UrlInput = forwardRef(function UrlInput({ onLoad, defaultValue }, ref) {
         ref={ref}
         type="text"
         value={value}
-        onChange={e => setValue(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="YouTube URL"
-        className={`
-          bg-zinc-800 text-white text-sm px-3 py-1.5 rounded w-72
-          outline-none border
-          ${error ? 'border-red-500' : 'border-zinc-600 focus:border-zinc-400'}
-          placeholder:text-zinc-500
-        `}
+        className="bg-zinc-800 text-white text-sm px-3 py-1.5 rounded w-72 outline-none border border-zinc-600 focus:border-zinc-400 placeholder:text-zinc-500"
       />
       <button
         onClick={submit}
