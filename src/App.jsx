@@ -1,15 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import UrlInput from './components/UrlInput.jsx'
 import Player from './components/Player.jsx'
+import HUD from './components/HUD.jsx'
 
 const SPEEDS = [1.0, 0.75, 0.5, 0.35, 0.2]
 const SPEED_LABELS = ['100%', '75%', '50%', '35%', '20%']
-
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  return `${m}:${String(s).padStart(2, '0')}`
-}
 
 function App() {
   const [ytReady, setYtReady] = useState(false)
@@ -99,12 +94,6 @@ function App() {
     playerRef.current = player
   }
 
-  function loopStatus() {
-    if (loopState === 0) return 'LOOP: —'
-    if (loopState === 1) return `LOOP: ${formatTime(loopStart)} → ?`
-    return `LOOP: ${formatTime(loopStart)} → ${formatTime(loopEnd)}`
-  }
-
   return (
     <div className="min-h-screen bg-zinc-900 text-white flex flex-col">
       {/* Header */}
@@ -130,10 +119,12 @@ function App() {
 
       {/* HUD */}
       {videoId && (
-        <div className="bg-zinc-800 border-t border-zinc-700 px-4 py-2 font-mono text-sm text-zinc-300 flex gap-6">
-          <span>SPEED: {SPEED_LABELS[speedIndex]}</span>
-          <span className={loopState === 2 ? 'text-green-400' : ''}>{loopStatus()}</span>
-        </div>
+        <HUD
+          speedLabel={SPEED_LABELS[speedIndex]}
+          loopState={loopState}
+          loopStart={loopStart}
+          loopEnd={loopEnd}
+        />
       )}
     </div>
   )
