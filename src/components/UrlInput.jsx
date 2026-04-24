@@ -28,11 +28,11 @@ const UrlInput = forwardRef(function UrlInput({ value, onChange, onLoad }, ref) 
         onChange={e => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="YouTube URL"
-        className="bg-zinc-800 text-white text-sm px-3 py-1.5 rounded w-72 outline-none border border-zinc-600 focus:border-zinc-400 placeholder:text-zinc-500"
+        className="font-mono bg-zinc-800 text-white text-xs px-3 py-1.5 rounded w-72 outline-none border border-zinc-700 focus:border-zinc-500 placeholder:text-zinc-600 tracking-wide"
       />
       <button
         onClick={submit}
-        className="bg-zinc-700 hover:bg-zinc-600 text-white text-sm px-3 py-1.5 rounded"
+        className="font-mono text-xs text-zinc-500 hover:text-white uppercase tracking-[0.15em] transition-colors pl-1"
       >
         Load
       </button>
