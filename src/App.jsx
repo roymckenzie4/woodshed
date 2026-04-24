@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import UrlInput from './components/UrlInput.jsx'
 import Player from './components/Player.jsx'
 import HUD from './components/HUD.jsx'
+import Cheatsheet from './components/Cheatsheet.jsx'
 
 const SPEEDS = [1.0, 0.75, 0.5, 0.35, 0.2]
 const SPEED_LABELS = ['100%', '75%', '50%', '35%', '20%']
 const STORAGE_KEY = 'woodshed'
+const NUDGE = 0.25
 
-// Read whatever we previously saved, falling back to an empty object if
-// nothing is there yet (first visit) or the JSON is somehow corrupt.
 function loadSaved() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
@@ -18,7 +18,7 @@ function loadSaved() {
 }
 
 function App() {
-  const saved = useRef(loadSaved()) // read once on first render, store in a ref
+  const saved = useRef(loadSaved())
 
   const [ytReady, setYtReady] = useState(false)
   const [url, setUrl] = useState(saved.current.url || '')
@@ -27,34 +27,23 @@ function App() {
   const [loopState, setLoopState] = useState(saved.current.loopState ?? 0)
   const [loopStart, setLoopStart] = useState(saved.current.loopStart ?? null)
   const [loopEnd, setLoopEnd] = useState(saved.current.loopEnd ?? null)
+  const [showCheatsheet, setShowCheatsheet] = useState(false)
   const playerRef = useRef(null)
   const inputRef = useRef(null)
   const appRef = useRef(null)
 
-  // Persist state to localStorage whenever any of these values change.
-  // JSON.stringify turns the object into a string so localStorage can store it.
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      url,
-      videoId,
-      speedIndex,
-      loopState,
-      loopStart,
-      loopEnd,
+      url, videoId, speedIndex, loopState, loopStart, loopEnd,
     }))
   }, [url, videoId, speedIndex, loopState, loopStart, loopEnd])
 
-  // Load the YouTube IFrame API script once on mount
   useEffect(() => {
     window.onYouTubeIframeAPIReady = () => setYtReady(true)
     const tag = document.createElement('script')
     tag.src = 'https://www.youtube.com/iframe_api'
     document.head.appendChild(tag)
 
-    // When the user clicks the YouTube iframe, focus moves into the cross-origin
-    // document and our keydown listener stops firing. Stealing focus back to
-    // appRef keeps our shortcuts working while still letting YouTube register
-    // mouse clicks (play/pause, scrubbing, etc.).
     function handleBlur() {
       setTimeout(() => appRef.current?.focus(), 0)
     }
@@ -62,8 +51,6 @@ function App() {
     return () => window.removeEventListener('blur', handleBlur)
   }, [])
 
-  // Loop enforcer — polls currentTime every 100ms and seeks back to loopStart
-  // when the playhead passes loopEnd. Only runs when loopState === 2.
   useEffect(() => {
     if (loopState !== 2 || !playerRef.current) return
     const id = setInterval(() => {
@@ -74,11 +61,24 @@ function App() {
     return () => clearInterval(id)
   }, [loopState, loopStart, loopEnd])
 
-  // Keyboard handler — re-registers when speedIndex or loopState changes
-  // so the handler always sees current values rather than a stale closure
+  // Keyboard handler — dependencies include loopStart/loopEnd (for nudge
+  // clamping) and showCheatsheet (to gate shortcuts while overlay is open)
   useEffect(() => {
     function handleKey(e) {
+      // Escape always closes the cheatsheet regardless of focus
+      if (e.key === 'Escape') {
+        setShowCheatsheet(false)
+        return
+      }
+
       if (document.activeElement === inputRef.current) return
+
+      // While the cheatsheet is open, only ? is active (to close it)
+      if (showCheatsheet) {
+        if (e.key === '?') setShowCheatsheet(false)
+        return
+      }
+
       const player = playerRef.current
       if (!player) return
 
@@ -121,21 +121,46 @@ function App() {
           }
           break
         }
+        // Nudge loop start back/forward — only when a start point exists
+        case '[':
+          if (loopState >= 1) {
+            setLoopStart(prev => Math.max(0, prev - NUDGE))
+          }
+          break
+        case ']':
+          if (loopState >= 1) {
+            // Don't let start overtake end (when loop is fully set)
+            setLoopStart(prev =>
+              loopEnd !== null ? Math.min(loopEnd - NUDGE, prev + NUDGE) : prev + NUDGE
+            )
+          }
+          break
+        // Nudge loop end back/forward — only when the full loop is set
+        case '{':
+          if (loopState === 2) {
+            setLoopEnd(prev => Math.max(loopStart + NUDGE, prev - NUDGE))
+          }
+          break
+        case '}':
+          if (loopState === 2) {
+            setLoopEnd(prev => prev + NUDGE)
+          }
+          break
+        case '?':
+          setShowCheatsheet(true)
+          break
       }
     }
 
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
-  }, [speedIndex, loopState])
+  }, [speedIndex, loopState, loopStart, loopEnd, showCheatsheet])
 
   function handlePlayerReady(player) {
     playerRef.current = player
-    // Apply saved speed — the player resets to 1x on every new load,
-    // so we need to re-apply our setting once it's ready
     if (speedIndex > 0) {
       player.setPlaybackRate(SPEEDS[speedIndex])
     }
-    // Seek to loop start so playback resumes from the right spot
     if (loopStart !== null) {
       player.seekTo(loopStart, true)
     }
@@ -177,6 +202,9 @@ function App() {
           loopEnd={loopEnd}
         />
       )}
+
+      {/* Cheatsheet overlay */}
+      {showCheatsheet && <Cheatsheet onClose={() => setShowCheatsheet(false)} />}
     </div>
   )
 }
