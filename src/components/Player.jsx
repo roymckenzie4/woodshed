@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 // Player manages the YT.Player instance lifecycle.
 // It renders a mount point div and creates/destroys the player
 // whenever videoId or ytReady changes.
-function Player({ videoId, ytReady, onPlayerReady }) {
+function Player({ videoId, ytReady, onPlayerReady, onPlayStateChange }) {
   const instanceRef = useRef(null)
 
   useEffect(() => {
@@ -18,7 +18,6 @@ function Player({ videoId, ytReady, onPlayerReady }) {
     instanceRef.current = new window.YT.Player('yt-player', {
       videoId,
       playerVars: {
-        autoplay: 1,
         // Let YouTube show its native controls — we layer our own keyboard
         // shortcuts on top via document keydown, but the native controls
         // are useful for scrubbing with a mouse.
@@ -28,6 +27,14 @@ function Player({ videoId, ytReady, onPlayerReady }) {
       },
       events: {
         onReady: (e) => onPlayerReady(e.target),
+        onStateChange: (e) => {
+          if (e.data === window.YT.PlayerState.PLAYING) {
+            onPlayStateChange?.(true)
+          } else if (e.data === window.YT.PlayerState.PAUSED) {
+            onPlayStateChange?.(false)
+          }
+          // Ignore BUFFERING and other transient states to avoid icon flicker
+        },
       },
     })
 
@@ -42,8 +49,8 @@ function Player({ videoId, ytReady, onPlayerReady }) {
   if (!videoId) return null
 
   return (
-    <div className="w-full h-full bg-black">
-      <div id="yt-player" className="w-full h-full" />
+    <div className="w-full bg-black md:h-full">
+      <div id="yt-player" className="w-full aspect-video md:aspect-auto md:h-full" />
     </div>
   )
 }

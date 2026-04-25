@@ -20,7 +20,7 @@ const UrlInput = forwardRef(function UrlInput({ value, onChange, onLoad }, ref) 
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-1 min-w-0">
       <input
         ref={ref}
         type="text"
@@ -28,7 +28,7 @@ const UrlInput = forwardRef(function UrlInput({ value, onChange, onLoad }, ref) 
         onChange={e => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="YouTube URL"
-        className="font-mono bg-zinc-800 text-white text-xs px-3 py-1.5 rounded w-72 outline-none border border-zinc-700 focus:border-zinc-500 placeholder:text-zinc-600 tracking-wide"
+        className="font-mono bg-zinc-800 text-white text-xs px-3 py-1.5 rounded flex-1 min-w-0 outline-none border border-zinc-700 focus:border-zinc-500 placeholder:text-zinc-600 tracking-wide"
       />
       <button
         onClick={submit}
