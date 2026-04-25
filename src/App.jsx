@@ -209,7 +209,7 @@ function App() {
   }
 
   return (
-    <div ref={appRef} tabIndex={-1} className="h-screen bg-zinc-900 text-white flex flex-col overflow-hidden outline-none">
+    <div ref={appRef} tabIndex={-1} className="h-dvh bg-zinc-900 text-white flex flex-col overflow-hidden outline-none">
       {/* Header */}
       <header className="shrink-0 flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800">
         <span className="font-mono text-white text-xs tracking-[0.25em] uppercase">woodshed</span>

@@ -30,7 +30,7 @@ function MobileControls({
     'text-emerald-400'
 
   return (
-    <div className="flex-1 flex flex-col md:hidden bg-zinc-900 border-t border-zinc-700 p-2 gap-2">
+    <div className="flex-1 flex flex-col md:hidden bg-zinc-900 border-t border-zinc-700 p-2 gap-2" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
 
       {/* Row 1 — transport (secondary) */}
       <div className="flex gap-2 h-20">
@@ -44,7 +44,7 @@ function MobileControls({
           onClick={onPlayPause}
           className="flex-1 flex items-center justify-center bg-zinc-800 rounded-lg font-mono text-2xl text-white active:bg-zinc-700 active:text-zinc-500"
         >
-          {isPlaying ? '⏸' : '▶'}
+          {isPlaying ? '⏸\uFE0E' : '▶\uFE0E'}
         </button>
         <button
           onClick={onSeekForward}
