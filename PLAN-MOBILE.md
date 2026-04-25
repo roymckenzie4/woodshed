@@ -1,79 +1,47 @@
-# Mobile Support Plan
+# Mobile Support Plan — COMPLETED
 
 ## Context
-woodshed.tools is entirely keyboard-driven — space, s, l, arrows, brackets. On mobile none of these work, and iOS blocks YouTube autoplay. The goal is a touch control layer that gives full functionality on phones while leaving all desktop keyboard behavior untouched. Nudge buttons (±0.25s loop tweaks) are skipped for now to keep the mobile UI clean.
+woodshed.tools was entirely keyboard-driven — space, s, l, arrows, brackets. On mobile none of these work, and iOS blocks YouTube autoplay. The goal was a touch control layer that gives full functionality on phones while leaving all desktop keyboard behavior untouched. Nudge buttons (±0.25s loop tweaks) were skipped to keep the mobile UI clean.
 
 ---
 
-## Stages
+## What was built
 
 ### Stage 1 — Layout fixes
-*Simple CSS/class changes, no logic involved.*
-
-**`src/components/UrlInput.jsx`**
-- Remove `w-72` from the `<input>`, replace with `flex-1 min-w-0`
-- Make the outer `<div>` also `flex-1 min-w-0` so it expands inside the header
-
-**`src/App.jsx` — header**
-- Wrap UrlInput in a `flex-1 min-w-0` container so it fills available header space
-
----
+- `UrlInput`: removed `w-72`, replaced with `flex-1 min-w-0` so the input expands on narrow screens
+- `App.jsx` header: wrapped UrlInput in a `flex-1 min-w-0` container
 
 ### Stage 2 — Player changes
-*Remove autoplay, wire up play state, fix mobile aspect ratio.*
+- Removed `autoplay: 1` (iOS blocks it; desktop users use spacebar)
+- Added `onStateChange` event → fires `onPlayStateChange(bool)` up to App, used to drive the play/pause button icon
+- Only updates play state on PLAYING/PAUSED events — ignores BUFFERING to prevent icon flicker on seeks
+- Mobile: video uses `aspect-video` to render at natural 16:9 instead of stretching to fill the flex container
 
-**`src/components/Player.jsx`**
-1. Remove `autoplay: 1` from `playerVars` (iOS blocks it silently; desktop users use spacebar, mobile users use the play button)
-2. Add `onStateChange` event handler that calls `onPlayStateChange(isPlaying: bool)` up to App
-3. Change container classes so mobile renders video at natural 16:9 instead of stretching to fill the flex container (which produces ugly black bars):
-   - Outer div: `w-full h-full` → `w-full md:h-full`
-   - Inner div: `w-full h-full` → `w-full aspect-video md:aspect-auto md:h-full`
+### Stage 3 — Shared action handlers
+Extracted keyboard switch cases into named functions in `App.jsx`:
+- `handlePlayPause`, `handleSeekBack`, `handleSeekForward`, `handleCycleSpeed`, `handleAdvanceLoop`
 
----
-
-### Stage 3 — Extract shared action handlers in App.jsx
-*Refactor so both keyboard shortcuts and mobile buttons call the same functions.*
-
-Extract inline keyboard switch cases into named functions:
-
-```js
-function handlePlayPause() { ... }
-function handleSeekBack() { ... }
-function handleSeekForward() { ... }
-function handleCycleSpeed() { ... }
-function handleAdvanceLoop() { ... }
-```
-
-Also:
-- Add `isPlaying` state (default `false`), updated via `onPlayStateChange` callback from Player
-- Update root div classes for mobile layout: `overflow-y-auto md:overflow-hidden`
-
----
+Also added `isPlaying` state, updated via `onPlayStateChange` from Player.
 
 ### Stage 4 — MobileControls component
-*New component, mobile-only, single row of 5 tap buttons.*
+Three-row layout, `flex-1` so it fills all space below the video. `md:hidden` — invisible on desktop.
 
-**`src/components/MobileControls.jsx`** (new file)
+**Row 1 — transport** (fixed `h-20`): three separate card buttons with gaps — ← 5S, ▶/⏸, 5S →
 
-Rendered in App.jsx below the player, `block md:hidden`.
+**Row 2 — speed** (fixed `h-20`): single card button. "SPEED" sublabel above value. Value turns amber when not at 100% — passive indicator that slow mode is active.
 
-Single row:
-```
-[ ←5s ]  [ ▶/⏸ ]  [ 5s→ ]  [ 100% ]  [ LOOP ]
-```
+**Row 3 — loop** (`flex-1`, hero element): largest button on the page, thumb-accessible. Three states:
+- Inactive: dim, "LOOP", hint "TAP TO SET IN POINT"
+- Start set: amber border + text, "LOOP IN SET", shows `start → ?`, hint "TAP TO SET OUT POINT"
+- Active: green border + `bg-emerald-950` tint, "LOOPING", shows full timestamps, hint "TAP TO CLEAR"
 
-Button behavior:
-- **←5s / 5s→** — seek back/forward 5 seconds
-- **▶/⏸** — toggle play/pause; icon reflects `isPlaying` state
-- **Speed** — cycles speed on tap; label shows current value (e.g. "85%")
-- **Loop** — advances loop state on tap; label/color reflects current state:
-  - State 0: "LOOP" (dim zinc)
-  - State 1: "SET END" (amber — waiting for end point)
-  - State 2: "LOOP ✓" (emerald — active; next tap clears)
-
-Style: matches HUD — `bg-zinc-800 border-t border-zinc-700 font-mono text-xs uppercase tracking-widest`, min 44px tap target height.
-
-Props: `isPlaying`, `speedLabel`, `loopState`, `onPlayPause`, `onSeekBack`, `onSeekForward`, `onCycleSpeed`, `onAdvanceLoop`
+### Polish fixes (post-deploy testing)
+- `⏸\uFE0E` / `▶\uFE0E` — Unicode text variation selector forces glyph rendering instead of emoji on mobile
+- `h-dvh` instead of `h-screen` — dynamic viewport height accounts for mobile browser chrome
+- `viewport-fit=cover` in viewport meta — allows app to draw behind iOS notch/home indicator
+- `theme-color` meta tag — Chrome on Android paints browser chrome to match the header (zinc-950)
+- `html, body { background-color: #18181b }` — fills safe areas with zinc-900 so no white peeks through
+- `env(safe-area-inset-bottom)` padding on MobileControls — loop button stays above home indicator
 
 ---
 
@@ -81,22 +49,25 @@ Props: `isPlaying`, `speedLabel`, `loopState`, `onPlayPause`, `onSeekBack`, `onS
 
 | File | Change |
 |------|--------|
-| `src/App.jsx` | Extract handlers, add `isPlaying` state, fix header/layout classes, render MobileControls |
-| `src/components/UrlInput.jsx` | Remove `w-72`, make input + wrapper flex-grow |
-| `src/components/Player.jsx` | Remove autoplay, add onStateChange, fix mobile aspect ratio |
-| `src/components/MobileControls.jsx` | New file — touch control row |
+| `src/App.jsx` | Extracted action handlers, added `isPlaying` state, fixed header/layout, renders MobileControls, `h-dvh` |
+| `src/components/UrlInput.jsx` | Removed `w-72`, flex-grow |
+| `src/components/Player.jsx` | Removed autoplay, added onStateChange, mobile aspect ratio, flicker fix |
+| `src/components/MobileControls.jsx` | New — three-row touch control panel |
+| `src/index.css` | Dark html/body background |
+| `index.html` | `theme-color` meta, `viewport-fit=cover` |
 
 ---
 
 ## Verification checklist
 
-- [ ] Desktop: all keyboard shortcuts still work
-- [ ] Desktop: layout visually unchanged
-- [ ] Desktop: video loads paused (autoplay removed) — spacebar starts it
-- [ ] Mobile: header URL input doesn't overflow
-- [ ] Mobile: video renders at 16:9 aspect ratio (no giant black bars)
-- [ ] Mobile: all 5 control buttons visible and tappable
-- [ ] Mobile: play/pause button icon updates correctly
-- [ ] Mobile: speed button label updates on tap
-- [ ] Mobile: loop button cycles through all 3 states correctly
-- [ ] iOS Safari: YouTube player loads and play button works
+- [x] Desktop: all keyboard shortcuts still work
+- [x] Desktop: layout visually unchanged
+- [x] Desktop: video loads paused (autoplay removed) — spacebar starts it
+- [x] Mobile: header URL input doesn't overflow
+- [x] Mobile: video renders at 16:9 aspect ratio
+- [x] Mobile: three control rows visible and tappable
+- [x] Mobile: play/pause icon updates correctly, no flicker on seek
+- [x] Mobile: speed turns amber when not at 100%
+- [x] Mobile: loop cycles through all 3 states with correct colors and timestamps
+- [x] Mobile: safe area insets respected (no content behind home indicator)
+- [x] Mobile: status bar and bottom bar match app dark theme
