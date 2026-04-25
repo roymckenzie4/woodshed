@@ -21,7 +21,7 @@ function MobileControls({
   const loopBg =
     loopState === 2 ? 'bg-emerald-950' : 'bg-zinc-800'
   const loopBorder =
-    loopState === 0 ? 'border-zinc-700' :
+    loopState === 0 ? 'border-transparent' :
     loopState === 1 ? 'border-amber-400/60' :
     'border-emerald-400/60'
   const loopTextColor =
@@ -30,7 +30,7 @@ function MobileControls({
     'text-emerald-400'
 
   return (
-    <div className="flex-1 flex flex-col md:hidden bg-zinc-900 border-t border-zinc-700 p-2 gap-2" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+    <div className="flex-1 flex flex-col md:hidden bg-zinc-900 p-2 gap-2" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
 
       {/* Row 1 — transport (secondary) */}
       <div className="flex gap-2 h-20">

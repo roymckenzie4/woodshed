@@ -17,6 +17,8 @@ function Player({ videoId, ytReady, onPlayerReady, onPlayStateChange }) {
 
     instanceRef.current = new window.YT.Player('yt-player', {
       videoId,
+      width: '100%',
+      height: '100%',
       playerVars: {
         // Let YouTube show its native controls — we layer our own keyboard
         // shortcuts on top via document keydown, but the native controls
@@ -49,8 +51,8 @@ function Player({ videoId, ytReady, onPlayerReady, onPlayStateChange }) {
   if (!videoId) return null
 
   return (
-    <div className="w-full bg-black md:h-full">
-      <div id="yt-player" className="w-full aspect-video md:aspect-auto md:h-full" />
+    <div className="w-full aspect-video bg-black md:aspect-auto md:h-full">
+      <div id="yt-player" className="w-full h-full" />
     </div>
   )
 }
