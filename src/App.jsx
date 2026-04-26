@@ -80,13 +80,17 @@ function App() {
   function handleSeekBack() {
     const player = playerRef.current
     if (!player) return
-    player.seekTo(player.getCurrentTime() - 5, true)
+    const target = player.getCurrentTime() - 5
+    const floor = loopState >= 1 && loopStart !== null ? loopStart : 0
+    player.seekTo(Math.max(floor, target), true)
   }
 
   function handleSeekForward() {
     const player = playerRef.current
     if (!player) return
-    player.seekTo(player.getCurrentTime() + 5, true)
+    const target = player.getCurrentTime() + 5
+    const ceil = loopState === 2 && loopEnd !== null ? loopEnd : Infinity
+    player.seekTo(Math.min(ceil, target), true)
   }
 
   function handleCycleSpeed() {
