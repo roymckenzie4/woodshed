@@ -14,11 +14,12 @@ function HUD({ speedLabel, loopState, loopStart, loopEnd }) {
   const active = loopState === 2
 
   return (
-    <div className="bg-zinc-800 border-t border-zinc-700 px-4 py-2 font-mono text-xs text-zinc-400 tracking-[0.15em] flex gap-6">
+    <div className="bg-zinc-800 border-t border-zinc-700 px-4 py-2 font-mono text-xs text-zinc-400 tracking-[0.15em] flex gap-6 items-center">
       <span>SPEED: <span className="text-white">{speedLabel}</span></span>
       <span className={active ? 'text-emerald-400' : ''}>
         {loopStatus(loopState, loopStart, loopEnd)}
       </span>
+      <span className="ml-auto">press <span className="text-white">?</span> for controls</span>
     </div>
   )
 }
