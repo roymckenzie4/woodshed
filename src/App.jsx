@@ -48,6 +48,7 @@ function App() {
     document.head.appendChild(tag)
 
     function handleBlur() {
+      if (document.activeElement === inputRef.current) return
       setTimeout(() => appRef.current?.focus(), 0)
     }
     window.addEventListener('blur', handleBlur)
