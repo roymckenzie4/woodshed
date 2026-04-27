@@ -30,6 +30,7 @@ function App() {
   const [loopEnd, setLoopEnd] = useState(saved.current.loopEnd ?? null)
   const [showCheatsheet, setShowCheatsheet] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isPlayerReady, setIsPlayerReady] = useState(false)
   const playerRef = useRef(null)
   const inputRef = useRef(null)
   const appRef = useRef(null)
@@ -61,7 +62,7 @@ function App() {
       }
     }, 100)
     return () => clearInterval(id)
-  }, [loopState, loopStart, loopEnd])
+  }, [loopState, loopStart, loopEnd, isPlayerReady])
 
   // --- Shared action handlers ---
   // Defined here so both the keyboard handler and MobileControls can call them.
@@ -195,6 +196,7 @@ function App() {
 
   function handlePlayerReady(player) {
     playerRef.current = player
+    setIsPlayerReady(true)
     if (speedIndex > 0) {
       player.setPlaybackRate(SPEEDS[speedIndex])
     }
