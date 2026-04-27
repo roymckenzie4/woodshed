@@ -47,12 +47,30 @@ function App() {
     tag.src = 'https://www.youtube.com/iframe_api'
     document.head.appendChild(tag)
 
+    let touchActive = false
+    const setTouchActive = () => { touchActive = true }
+    const setTouchInactive = () => { touchActive = false }
+    window.addEventListener('touchstart', setTouchActive)
+    window.addEventListener('touchend', setTouchInactive)
+
     function handleBlur() {
-      if (document.activeElement === inputRef.current) return
+      if (touchActive && document.activeElement === inputRef.current) return
       setTimeout(() => appRef.current?.focus(), 0)
     }
     window.addEventListener('blur', handleBlur)
-    return () => window.removeEventListener('blur', handleBlur)
+
+    const focusGuard = setInterval(() => {
+      if (document.activeElement === inputRef.current) return
+      if (!document.hasFocus()) return
+      appRef.current?.focus()
+    }, 500)
+
+    return () => {
+      window.removeEventListener('blur', handleBlur)
+      window.removeEventListener('touchstart', setTouchActive)
+      window.removeEventListener('touchend', setTouchInactive)
+      clearInterval(focusGuard)
+    }
   }, [])
 
   useEffect(() => {
@@ -60,6 +78,7 @@ function App() {
     const id = setInterval(() => {
       if (playerRef.current.getCurrentTime() >= loopEnd) {
         playerRef.current.seekTo(loopStart, true)
+        setTimeout(() => appRef.current?.focus(), 50)
       }
     }, 100)
     return () => clearInterval(id)
@@ -213,6 +232,7 @@ function App() {
     setLoopState(0)
     setLoopStart(null)
     setLoopEnd(null)
+    appRef.current?.focus()
   }
 
   return (
